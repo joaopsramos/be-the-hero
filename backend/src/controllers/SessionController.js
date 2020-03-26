@@ -1,12 +1,10 @@
-const crypto = require('crypto')
-
-const connection = require('../database/connection')
+const database = require('../database/connection')
 
 module.exports = {
     async create(req, res) {
         const { id } = req.body
 
-        const ong = await connection('ongs')
+        const ong = await database('ongs')
             .where('id', id)
             .select('name')
             .first()

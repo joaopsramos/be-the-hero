@@ -1,14 +1,20 @@
-const crypto = require('crypto')
-
-const connection = require('../database/connection')
+const database = require('../database/connection')
 
 module.exports = {
     async index(req, res) {
+        let incidents
         const { page = 1 } = req.query
 
-        const [count] = await connection('incidents').count()
+        const [count] = await database('incidents').count()
 
-        const incidents = await connection('incidents')
+        // if (req.headers.authorization) {
+        //     const ong_id = req.headers.authorization
+
+        //     incidents = await database('incidents')
+        //         .select('*')
+        //         .where('ong_id', ong_id)
+        // } else {
+        incidents = await database('incidents')
             .join('ongs', 'ongs.id', '=', 'incidents.ong_id')
             .limit(5)
             .offset((page - 1) * 5)
@@ -22,6 +28,7 @@ module.exports = {
             ])
 
         res.header('X-Total-Count', count['count(*)'])
+        // }
 
         return res.json(incidents)
     },
@@ -30,7 +37,7 @@ module.exports = {
         const { title, description, value } = req.body
         const ong_id = req.headers.authorization
 
-        const [id] = await connection('incidents').insert({
+        const [id] = await database('incidents').insert({
             title,
             description,
             value,
@@ -44,7 +51,7 @@ module.exports = {
         const { id } = req.params
         const ong_id = req.headers.authorization
 
-        const incident = await connection('incidents').where('id', id)
+        const incident = await database('incidents').where('id', id)
             .select('ong_id')
             .first()
 
@@ -55,7 +62,7 @@ module.exports = {
             return res.status(400).json({ error: 'Incident id error.' })
 
 
-        await connection('incidents').where('id', id).delete()
+        await database('incidents').where('id', id).delete()
 
         return res.status(204).send()
     }
